@@ -31,8 +31,8 @@ def call_api(access_token,phone_number='33699901032'):
 
 
 # Replace 'your_client_id' and 'your_client_secret' with actual values
-client_id = 'XXX'
-client_secret = 'XXX'
+client_id = 'XXXXX'
+client_secret = 'XXXXX'
 scope = ""
 
 access_token = get_access_token(client_id, client_secret, scope)
