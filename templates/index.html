@@ -16,23 +16,39 @@
     <div id="map"></div>
 
     <script>
-        var map = L.map('map').setView([48.8566, 2.3522], 14); // Domyślnie Paryż
+        var map = L.map('map').setView([48.8566, 2.3522], 14);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 18
         }).addTo(map);
 
-        var markers = {};  // Obiekt do przechowywania punktów
-
+        var markers = {};  // Mapa przechowująca punkty
         var socket = io.connect('http://' + document.domain + ':' + location.port);
 
-        socket.on('new_location', function(data) {
-            var key = data.lat + ',' + data.lng;  // Unikalny identyfikator lokalizacji
+        // Pobranie i wyświetlenie stref (wielokątów)
+        function loadZones() {
+            fetch('/zones')
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(polygon => {
+                        L.polygon(polygon, {
+                            color: 'red',
+                            fillColor: '#f03',
+                            fillOpacity: 0.3
+                        }).addTo(map);
+                    });
+                });
+        }
 
-            // Jeśli punkt istnieje, aktualizujemy jego pozycję
+        // Pobranie stref przy starcie
+        loadZones();
+
+        // Obsługa dynamicznych punktów
+        socket.on('new_location', function(data) {
+            var key = data.lat + ',' + data.lng;
+
             if (markers[key]) {
                 markers[key].setLatLng([data.lat, data.lng]);
             } else {
-                // Dodanie nowego punktu
                 var circle = L.circle([data.lat, data.lng], {
                     color: 'blue',
                     fillColor: '#30f',
@@ -43,7 +59,7 @@
                 markers[key] = circle;
             }
 
-            map.setView([data.lat, data.lng], 14);  // Automatyczne przesunięcie mapy
+            // map.setView([data.lat, data.lng], 14);
         });
     </script>
 </body>
