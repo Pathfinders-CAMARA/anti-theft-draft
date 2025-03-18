@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamiczna Mapa</title>
+    <title>Dynamic map</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
@@ -12,7 +12,7 @@
     </style>
 </head>
 <body>
-    <h2>Dynamiczna Mapa Lokalizacji</h2>
+    <h2>Dynamic localization map</h2>
     <div id="map"></div>
 
     <script>
@@ -20,27 +20,40 @@
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 18
         }).addTo(map);
-
+    
         var marker = null;
         var socket = io.connect('http://' + document.domain + ':' + location.port);
-
-        // Pobranie i wyświetlenie stref
+    
+        // Pobranie i wyświetlenie stref z podpisami
         function loadZones() {
             fetch('/zones')
                 .then(response => response.json())
                 .then(data => {
-                    data.forEach(zone => {
-                        L.polygon(zone.polygon, {
+                    data.forEach((zone, index) => {
+                        let polygon = L.polygon(zone.polygon, {
                             color: zone.color,
                             fillColor: zone.color,
                             fillOpacity: 0.3
                         }).addTo(map);
+    
+                        // Znalezienie lewego górnego rogu (najmniejsza długość, największa szerokość)
+                        let topLeftLat = Math.max(...zone.polygon.map(p => p[0])); // Największa szerokość (latitude)
+                        let topLeftLng = Math.min(...zone.polygon.map(p => p[1])); // Najmniejsza długość (longitude)
+
+                        // Tworzenie etykiety jako przezroczysty napis
+                        let label = L.marker([topLeftLat, topLeftLng], {
+                            icon: L.divIcon({
+                                className: 'transparent-label',
+                                html: `${zone.name}`,  // Nazwa strefy
+                                iconSize: null // Automatyczna wielkość
+                            })
+                        }).addTo(map);
                     });
                 });
         }
-
+    
         loadZones();
-
+    
         // Obsługa dynamicznego przesuwania punktu
         socket.on('new_location', function(data) {
             if (marker) {
@@ -50,12 +63,23 @@
                     color: 'blue',
                     fillColor: '#30f',
                     fillOpacity: 0.5,
-                    radius: 50  
+                    radius: 10  
                 }).addTo(map);
             }
-
+    
             map.panTo([data.lat, data.lng]);  
         });
     </script>
+    
+    <style>
+        .transparent-label {
+            font-size: 40px;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 255);  /* Półprzezroczysty czarny */
+            text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.5); /* Delikatny cień */
+            white-space: nowrap;
+            pointer-events: none;  /* Żeby etykieta nie przeszkadzała w klikaniu */
+        }
+    </style>
 </body>
 </html>

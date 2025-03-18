@@ -176,7 +176,8 @@ def get_zones():
                 [base_lat, base_lng + 0.005],
                 [base_lat, base_lng]
             ],
-            "color": "red"
+            "color": "red",
+            "name": "30 kph zone"
         },
         {
             "polygon": [
@@ -186,7 +187,8 @@ def get_zones():
                 [base_lat + 0.0025, base_lng + 0.011],
                 [base_lat + 0.0025, base_lng + 0.006]
             ],
-            "color": "green"
+            "color": "green",
+            "name": "50 kph zone"
         }
     ]
 
